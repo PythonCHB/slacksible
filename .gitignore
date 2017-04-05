@@ -20,8 +20,6 @@ lib64/
 parts/
 sdist/
 var/
-bin/
-include/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -35,7 +33,6 @@ include/
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-pip-selfcheck.json
 
 # Unit test / coverage reports
 htmlcov/
