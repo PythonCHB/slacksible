@@ -1,23 +1,35 @@
+#! /Users/jhefner/python_dev/uw_python/project/bin/python
+
 from slackclient import SlackClient
-import logging
+
+
+# import logging
 
 
 
-'''
-TODOS:
-    * create logs:
-        1. Debug log. slacksible_debug.log (10)
-        2. stderr log. slacksible_stderr.log (40)
-'''
+
+# TODOS:
+#     * create logs:
+#         1. Debug log. slacksible_debug.log (10)
+#         2. stderr log. slacksible_stderr.log (40)
+
+
+def test():
+    sc.api_call(
+    "chat.postMessage",
+    channel="#slack_bot_bullshit",
+    text="Hello from Python! :tada:"
+    )
+
+# TODO: change token to non-test token
+# TODO: move token out to env var or file and loaded during app boot
+#   Example: os.environ[" ENV VAR TOKEN ALREADY LOADED "]
+token = "xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs"
+sc = SlackClient(token)
+
 
 def main():
-
-    # TODO: change token to non-test token.non-test
-    # TODO: move token out of file and have it read from elsewhere or during app boot
-    token = "xoxb-168937458193-LUpXIw4f9Mk97iD6E1vtTFEr"
-
-    sc = SlackClient(token)
-
+    # test()
     if sc.rtm_connect(): # TODO: multi-thread this blocking action.
         print("====================Listening====================") # move to debug log
         while True:
@@ -37,3 +49,6 @@ def main():
                         print("channel is:", slack_data[0]["channel"])
     else:
         print("Connection failed to Slack") # move to error log
+
+if __name__ == '__main__':
+    main()
