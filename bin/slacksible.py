@@ -1,8 +1,8 @@
 #! /Users/jhefner/python_dev/uw_python/project/bin/python
 
 from slackclient import SlackClient
-
-
+import os
+import sys
 # import logging
 
 
@@ -28,8 +28,19 @@ token = "xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs"
 sc = SlackClient(token)
 
 
+class slacksible():
+    """
+
+    """
+    def __init__(self, args, **kwargs):
+        self.token = os.environ["slacksible_token"]
+
+        # TODO: find a better way
+        self.log_path = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]
+
 def main():
-    # test()
+
+
     if sc.rtm_connect(): # TODO: multi-thread this blocking action.
         print("====================Listening====================") # move to debug log
         while True:
