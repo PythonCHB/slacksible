@@ -33,7 +33,7 @@ class slacksible():
         self.log_path = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/logs"
 
 
-    def setup_dirs(self):
+    def setup_filesystem_dirs(self):
         '''
         Creates directory structure for a working application environment
         No return, makes changes directly on the filesystem
@@ -48,15 +48,25 @@ class slacksible():
     @staticmethod
     def seppuku():
         '''
-        Restart application
+        Restarts running bot application (.py) file
         '''
         # TODO: note restarting of application in debug log
         os.execv(__file__, sys.argv)
         # TODO: app should restart and not get to next line. raise error if it does
 
+    def bot_api_test(self): # simple api test for bot
+        '''
+        Simple bot API test
+        '''
+        sc.api_call(
+        "chat.postMessage",
+        channel="#slack_bot",
+        text="Hello from Python! :tada:"
+        )
+
     def bot_listen(self):
         '''
-        Connect to slack api and listen to data stream it has access to
+        Connect bot to slack api and listen to data stream it has access to
         '''
         if sc.rtm_connect():
             print("====================Listening====================") # move to debug log
@@ -90,15 +100,6 @@ class slacksible():
         # TODO: capture commands directed at bot and sort by order of usage.
         pass
 
-
-
-# simple api test for bot
-def test():
-    sc.api_call(
-    "chat.postMessage",
-    channel="#slack_bot",
-    text="Hello from Python! :tada:"
-    )
 
 def main():
     pass
