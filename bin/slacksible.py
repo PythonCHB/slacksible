@@ -101,7 +101,7 @@ def test():
     )
 
 def main():
-    print(os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/logs")
+    pass
 
 
 if __name__ == '__main__':
