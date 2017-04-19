@@ -1,9 +1,12 @@
 #! /Users/jhefner/python_dev/uw_python/project/bin/python
 
-from slackclient import SlackClient
 import os
 import sys
-# import logging
+import logging
+
+
+from slackclient import SlackClient
+import argparse
 
 # TODOS:
 #     * create logs:
@@ -14,23 +17,46 @@ import sys
 #         1. solve token issue (dont show it in code)
 
 # TODO: change token to non-test token
-# TODO: move token out to env var or file and loaded during app boot
-#   Example: os.environ[" ENV VAR TOKEN ALREADY LOADED "]
-token = "xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs"
-sc = SlackClient(token)
 
+# TODO: move token out to env var or file and loaded during app boot
+#   Example: `export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs`
+
+# sc = SlackClient(token)
+
+def cli_parser():
+    """
+    Parses all arguments passed on command line.
+    Creates an argparse class instance from passed arguments.
+    """
+    parser = argparse.ArgumentParser(description="slacksible: Remote Ansible execution with run reports by Ara.")
+    parser.add_argument('--verbose', '-v', action='count', default=0,
+    help='-v: print debug info to console.')
+    parser.add_argument('--token', '-t', required=True, type=str, help="Slack Bot Token generated from Slack platform.")
+    return parser.parse_args()
 
 
 class slacksible():
     """
     Ansible slack bot class
     """
-    def __init__(self, args, **kwargs):
-        self.token = os.environ["slacksible_token"]
+    def __init__(self, token, *args, **kwargs):
+        print("args: ", args)
+        print("kwargs: ", kwargs)
 
         # TODO: find a better way, this is ugly as hell
         #       this finds one directory up from where the script is being run in /bin
-        self.log_path = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/logs"
+        self.log_dir = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/logs"
+        self.debug_log = logging.getLogger("slacksible_debug")
+        self.stderr_log = logging.getLogger("slacksible_stderr")
+        self.usage_log = logging.getLogger("slacksible_metrics")
+
+        if token:
+            self.token = token
+            self.debug_log.debug("Token provided on CLI.")
+        else:
+            self.token = os.environ.get('SLACKSIBLE_TOKEN')
+            self.debug_log.debug("Token retrieved from environment variable")
+        self.sc = SlackClient(self.token)
 
 
     def setup_filesystem_dirs(self):
@@ -40,13 +66,13 @@ class slacksible():
         '''
         if not os.path.exists(self.log_path):
             os.makedirs(self.log_path)
-            # add dir creation to debug log
+            self.debug_log.debug("Directory created: ",self.log_path,)
         else:
             pass
             # TODO: note existence of already existing log dir to debug log.
 
     @staticmethod
-    def seppuku():
+    def bot_seppuku():
         '''
         Restarts running bot application (.py) file
         '''
@@ -58,7 +84,7 @@ class slacksible():
         '''
         Simple bot API test
         '''
-        sc.api_call(
+        self.sc.api_call(
         "chat.postMessage",
         channel="#slack_bot",
         text="Hello from Python! :tada:"
@@ -68,11 +94,12 @@ class slacksible():
         '''
         Connect bot to slack api and listen to data stream it has access to
         '''
-        if sc.rtm_connect():
+        if self.sc.rtm_connect():
             print("====================Listening====================") # move to debug log
             while True: # TODO: capture exit from this loop in debug log
-                slack_data = sc.rtm_read() # TODO: multi-thread/async this blocking action.
+                slack_data = self.sc.rtm_read() # TODO: multi-thread/async this blocking action.
                 if slack_data != [] and "text" in slack_data[0]:
+
                     # move to debug log
                     if "message" in slack_data[0]["type"]:
                         print("--------------------------")
@@ -88,11 +115,11 @@ class slacksible():
         else:
             print("Connection failed to Slack") # move to error log
 
-    def bot_query_ARA(self):
+    def query_ARA(self):
         # TODO: create cli parser for reading existing runs
         pass
 
-    def bot_query_ansible(self):
+    def query_ansible(self):
         # TODO:
         pass
 
@@ -102,7 +129,9 @@ class slacksible():
 
 
 def main():
-    pass
+    args = cli_parser()
+    bot = slacksible(args.token)
+    bot.bot_listen()
 
 
 if __name__ == '__main__':
