@@ -17,7 +17,7 @@ import argparse
 #       1. solve token issue (dont show it in code)
 #   * change token to non-test token
 #   * move token out to env var or file and loaded during app boot
-#       Example: `export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjK
+#       Example: `export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs
 
 def cli_parser():
     """
@@ -27,7 +27,7 @@ def cli_parser():
     parser = argparse.ArgumentParser(description="slacksible: Remote Ansible execution with run reports by Ara.")
     parser.add_argument('--verbose', '-v', action='count', default=0,
     help='-v: print debug info to console.')
-    parser.add_argument('--token', '-t', required=True, type=str, help="Slack Bot Token generated from Slack platform.")
+    parser.add_argument('--token', '-t', type=str, help="Slack Bot Token generated from Slack platform.")
     return parser.parse_args()
 
 
