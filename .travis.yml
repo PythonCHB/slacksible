@@ -7,3 +7,9 @@ install: "pip install -r requirements.txt"
 
 # command to run tests
 script: pytest
+
+notifications:
+  email: false
+
+notifications:
+  slack: talkshitgethit:9jbJL2za5FWRFR4EFLF7leOp
