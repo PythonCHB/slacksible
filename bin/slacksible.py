@@ -9,19 +9,15 @@ from slackclient import SlackClient
 import argparse
 
 # TODOS:
-#     * create logs:
-#         1. Debug log. slacksible_debug.log (10)
-#         2. stderr log. slacksible_stderr.log (40)
-#         3. usage log. slacksible_metrics.log
-#     * create slack bot class:
-#         1. solve token issue (dont show it in code)
-
-# TODO: change token to non-test token
-
-# TODO: move token out to env var or file and loaded during app boot
-#   Example: `export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs`
-
-# sc = SlackClient(token)
+#   * create logs:
+#       1. Debug log. slacksible_debug.log (10)
+#       2. stderr log. slacksible_stderr.log (40)
+#       3. usage log. slacksible_metrics.log
+#   * create slack bot class:
+#       1. solve token issue (dont show it in code)
+#   * change token to non-test token
+#   * move token out to env var or file and loaded during app boot
+#       Example: `export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjK
 
 def cli_parser():
     """
