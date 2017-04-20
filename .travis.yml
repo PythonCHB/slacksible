@@ -10,6 +10,4 @@ script: pytest
 
 notifications:
   email: false
-
-notifications:
   slack: talkshitgethit:9jbJL2za5FWRFR4EFLF7leOp
