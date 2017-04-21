@@ -81,7 +81,7 @@ class slacksible():
             self.debug_log.debug("Token retrieved from environment variable")
         self.sc = SlackClient(self.token)
 
-
+    # TODO: review if this can be moved to its own module
     def setup_filesystem_dirs(self):
         '''
         Creates directory structure for a working application environment
@@ -91,17 +91,18 @@ class slacksible():
             os.makedirs(self.log_path)
             self.debug_log.debug("Directory created: ",self.log_path,)
         else:
-            pass
-            # TODO: note existence of already existing log dir to debug log.
+            self.debug_log.debug("Directory exists: ",self.log_path)
 
-    @staticmethod
-    def bot_seppuku():
+    def bot_seppuku(self):
         '''
         Restarts running bot application (.py) file
         '''
-        # TODO: note restarting of application in debug log
+        self.debug_log.debug("Slacksible bot restarting.")
         os.execv(__file__, sys.argv)
-        # TODO: app should restart and not get to next line. raise error if it does
+
+        # App should restart and not get to next line. raise error if it does
+        # TODO: write raise statement to notify that bot did not restart
+        self.stderr_log.error("Slacksible bot restart FAILED.")
 
     def bot_api_test(self): # simple api test for bot
         '''
@@ -118,25 +119,25 @@ class slacksible():
         Connect bot to slack api and listen to data stream it has access to
         '''
         if self.sc.rtm_connect():
-            print("====================Listening====================") # move to debug log
+            self.debug_log.debug("====================Listening====================") # move to debug log
             while True: # TODO: capture exit from this loop in debug log
                 slack_data = self.sc.rtm_read() # TODO: multi-thread/async this blocking action.
                 if slack_data != [] and "text" in slack_data[0]:
 
                     # move to debug log
                     if "message" in slack_data[0]["type"]:
-                        print("--------------------------")
-                        print(slack_data)
+                        self.debug_log.debug("--------------------------")
+                        self.debug_log.debug(slack_data)
                         if "user" in slack_data[0]:
-                            print("user is:", slack_data[0]["user"])
+                            self.debug_log.debug("user is:", slack_data[0]["user"])
                         if "type" in slack_data[0]:
-                            print("type is:", slack_data[0]["type"])
+                            self.debug_log.debug("type is:", slack_data[0]["type"])
                         if "text" in slack_data[0]:
-                            print("message is:", slack_data[0]["text"])
+                            self.debug_log.debug("message is:", slack_data[0]["text"])
                         if "channel" in slack_data[0]:
-                            print("channel is:", slack_data[0]["channel"])
+                            self.debug_log.debug("channel is:", slack_data[0]["channel"])
         else:
-            print("Connection failed to Slack") # move to error log
+            self.stderr_log.error("Connection failed to Slack")
 
     def query_ARA(self):
         # TODO: create cli parser for reading existing runs
