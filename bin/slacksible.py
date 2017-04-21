@@ -37,6 +37,24 @@ def cli_parser():
     parser.add_argument('--token', '-t', type=str, help="Slack Bot Token generated from Slack platform.")
     return parser.parse_args()
 
+# TODO: review if this can be moved to its own module
+def setup_logger(log_name, log_file, level=logging.INFO):
+    """
+    Easily setup multiple log files and levels
+    """
+    if not os.path.isfile(log_file):
+        with open(log_file, 'a'):
+            os.utime(log_file, None)
+
+    # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s - [%(threadName)s] [%(levelname)s]  %(message)s")
+    handler = logging.FileHandler(log_file)
+    handler.setFormatter(formatter)
+    logger = logging.getLogger(log_name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    return logger
+
 
 class slacksible():
     """
@@ -48,10 +66,12 @@ class slacksible():
 
         # TODO: find a better way, this is ugly as hell
         #       this finds one directory up from where the script is being run in /bin
-        self.log_dir = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/logs"
-        self.debug_log = logging.getLogger("slacksible_debug")
-        self.stderr_log = logging.getLogger("slacksible_stderr")
-        self.usage_log = logging.getLogger("slacksible_metrics")
+        self.log_dir = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/log/"
+
+        self.debug_log = setup_logger("slacksible_debug", self.log_dir+"slacksible_debug.log", level=logging.DEBUG)
+        self.debug_log.addHandler(logging.StreamHandler(sys.stdout)) # default for StreamHandler is stderr but we just want to print to console
+        self.stderr_log = setup_logger("slacksible_stderr", self.log_dir+"slacksible_stderr.log", level=logging.ERROR)
+        self.usage_log = setup_logger("slacksible_metrics", self.log_dir+"slacksible_metrics.log", level=logging.INFO)
 
         if token:
             self.token = token
