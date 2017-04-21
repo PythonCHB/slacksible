@@ -19,6 +19,13 @@ import argparse
 #   * move token out to env var or file and loaded during app boot
 #       Example: `export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs
 
+# Logging levels:
+# CRITICAL    50
+# ERROR       40
+# WARNING     30
+# INFO        20
+# DEBUG       10
+
 def cli_parser():
     """
     Parses all arguments passed on command line.
