@@ -10,8 +10,8 @@ import json
 from slackclient import SlackClient
 import argparse
 
-#   * move token out to env var or file and loaded during app boot
-#       Example: export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs
+# TODO: move token out to env var or file and loaded during app boot
+# Example- export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs
 
 # Logging levels:
 # CRITICAL    50
@@ -19,7 +19,6 @@ import argparse
 # WARNING     30
 # INFO        20
 # DEBUG       10
-
 
 
 def cli_parser():
@@ -148,16 +147,17 @@ def main():
     log_dir = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/log/"
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
+    # TODO: originally i thought i'd like different log files for each logging level,
+    # similarly to how Unicorn works. now im unsure. may need to compress this to 1 file.
     debug_log = setup_logger("slacksible_debug", log_dir+"slacksible_debug.log", level=logging.DEBUG)
     stderr_log = setup_logger("slacksible_stderr", log_dir+"slacksible_stderr.log", level=logging.ERROR)
     usage_log = setup_logger("slacksible_metrics", log_dir+"slacksible_metrics.log", level=logging.INFO)
 
-
+    # TODO: restructure inputs so the log files go in under the *args array
     bot = slacksible(args.token, args.verbose, debug_log, stderr_log, usage_log)
     try:
         bot.listen()
     except KeyboardInterrupt:
-        # TODO: move print log when log isn't created yet? Need to restructure log creation.
         debug_log.debug("Exiting via KeyboardInterrupt")
 
 
