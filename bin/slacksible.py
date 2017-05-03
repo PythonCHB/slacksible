@@ -86,21 +86,17 @@ class slacksible():
         )
 
     def determine_bot_id(self):
-        print(json.dumps(self.sc.api_call("users.list"), sort_keys=False, indent=4))
         user_list= self.sc.api_call("users.list")
-        #print(user_list["members"])
         for user in user_list["members"]:
-            print("===========================")
-            print(json.dumps(user, sort_keys=False, indent=4))
-            print(json.dumps(user["name"], sort_keys=False, indent=4))
-            print(json.dumps(user["id"], sort_keys=False, indent=4))
-
             if user["name"] == self.bot_name:
+                self.debug_log.debug("Bot Slack ID: "+user["id"])
                 return user["id"]
 
     def process_response(self, user, channel):
+        '''
+        Process user input and route to correct function to deal with request
+        '''
         # TODO: create command list and route these requests to different functions
-
         pass
 
     def seppuku(self):
@@ -109,6 +105,12 @@ class slacksible():
         '''
         self.debug_log.debug("Slacksible bot restarting.")
         os.execv(__file__, sys.argv)
+
+    def toggle_debug(self):
+        '''
+        Toggles debug logging on via Slack command
+        '''
+        pass
 
     def query_ARA(self):
         # TODO: create cli parser for reading existing runs
@@ -126,6 +128,7 @@ class slacksible():
             '''
             Connect bot to slack api and listen to data stream it has access to
             '''
+            self.bot_id = self.determine_bot_id()
             if self.sc.rtm_connect():
                 self.debug_log.debug("================= Begin Listening =================")
                 while True:
