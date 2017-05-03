@@ -11,7 +11,7 @@ from slackclient import SlackClient
 import argparse
 
 # TODO: move token out to env var or file and loaded during app boot
-# Example- export SLACKSIBLE_TOKEN=xoxb-168959872961-Clds2jLyYvCQY3syhyEUSjKs
+
 
 # Logging levels:
 # CRITICAL    50
