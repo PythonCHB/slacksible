@@ -6,7 +6,7 @@ python:
 install: "pip install -r requirements.txt"
 
 # command to run tests
-script: "py.test bin/test.py"
+script: "pytest bin/test.py"
 
 notifications:
   email: false
