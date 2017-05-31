@@ -153,10 +153,19 @@ class Slacksible():
         if slack_data[0]["user"] == self.bot_id:
             if self.verbose: self.debug_log.debug("Ignoring flexo's own response.")
         else:
-            if len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "help":
-                pass
-                #TODO: make bot list available commands
+            if len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "ping":
+                self.respond("Pong! :pingpong:", slack_data[0]["channel"])
 
+            elif len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "help":
+                # parser = argparse.ArgumentParser(description="slacksible: Remote Ansible execution with run reports by Ara.")
+                # parser.add_argument('-d', 'debug', type=str, help='toggle debug logging.', required=False)
+                # parser.add_argument('-s', 'seppuku', action='store_true', help="Restart slacksible.", required=False)
+                # parser.add_argument('-u', 'uptime', action='store_true', help="Display slacksible bot uptime.", required=False)
+                # parser.add_argument('-a', 'ara', action='store_true', help="Request info from ARA.", required=False)
+                # parser.parse_args(['--option', 'value', '--more-options', 'more-values'])
+                # self.respond("",slack_data[0]["channel"])
+                #TODO: make bot list available commands
+                pass
             elif len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "seppuku":
                 if self.verbose: self.debug_log.debug("Invoking seppuku function")
                 self.seppuku(slack_data)
@@ -168,26 +177,13 @@ class Slacksible():
                 if self.verbose: self.debug_log.debug("Invoking toggle_debug function")
                 self.toggle_debug(slack_data)
 
-            elif len(text.split()) == 2 and text.split()[1] == "ara":
+            elif len(text.split()) == 3 and text.split()[1] == "ara":
                 if self.verbose: self.debug_log.debug("Invoking query_ARA function")
                 self.query_ARA(slack_data)
 
-
-            # elif len(text.split()) == 2 and text.split()[1] == "":
-            #     pass
-
-            # elif len(text.split()) == 2 and text.split()[1] == "":
-            #     pass
-
-            # elif len(text.split()) == 2 and text.split()[1] == "":
-            #     pass
-
-            # elif len(text.split()) == 2 and text.split()[1] == "":
-            #     pass
-
-            # elif len(text.split()) == 2 and text.split()[1] == "":
-            #     pass
-
+            elif len(text.split()) == 3 and text.split()[1] == "ansible":
+                if self.verbose: self.debug_log.debug("Sending action to Ansible")
+                self.command_ansible(slack_data)
 
 
     def seppuku(self, slack_data):
@@ -197,6 +193,7 @@ class Slacksible():
         if self.verbose: self.debug_log.debug("\n=================\n   Slacksible bot restarting. \n=================\n\n\n")
         self.respond("Slacksible is restarting.", slack_data[0]["channel"])
         os.execv(__file__, sys.argv)
+
 
     def toggle_debug(self, slack_data):
         '''
@@ -218,41 +215,50 @@ class Slacksible():
         '''
         Query ARA database for information to report
         '''
-        conn = sqlite3.connect(self.sqlite_db)
-        c = conn.cursor()
 
-        response = '''
-        ```Playbook:      |      Start Time(UTC):      |      Status:
+        if slack_data[0]["text"].split()[2] == "status":
+            conn = sqlite3.connect(self.sqlite_db)
+            c = conn.cursor()
+
+            response = '''
+            ```Playbook:      |      Start Time(UTC):      |      Status:
 '''
-        c.execute("select path, time_start, complete from playbooks order by time_start desc LIMIT 5") #TODO: allow this to be configurable but protect against injection
-        for row in c.execute("select path, time_start, complete from playbooks order by time_start desc LIMIT 5"):
-            print(row[0].split('/')[-1], type(row[0].split('/')[-1]))
-            print(row[1], type(row[1]))
-            print(row[2], type(row[2]))
-            print()
-            playbook = row[0].split('/')[-1]
-            time = row[1]
-            if row[2]:
-                completed = "Complete"
-            else:
-                completed = "Incomplete"
-            response += "{} | {} | {} \n".format(playbook.strip(),time.strip(),str(completed).strip())
-        response +="```"
-        if self.verbose: self.debug_log.debug(response)
-        self.respond(response, slack_data[0]["channel"])
+            c.execute("select path, time_start, complete from playbooks order by time_start desc LIMIT 5") #TODO: allow this to be configurable but protect against injection
+            for row in c.execute("select path, time_start, complete from playbooks order by time_start desc LIMIT 5"):
+                print(row[0].split('/')[-1], type(row[0].split('/')[-1]))
+                print(row[1], type(row[1]))
+                print(row[2], type(row[2]))
+                print()
+                playbook = row[0].split('/')[-1]
+                time = row[1]
+                if row[2]:
+                    completed = "Complete"
+                else:
+                    completed = "Incomplete"
+                response += "{} | {} | {} \n".format(playbook.strip(),time.strip(),str(completed).strip())
+            response +="```"
+            if self.verbose: self.debug_log.debug(response)
+            self.respond(response, slack_data[0]["channel"])
 
 
-    def command_ansible(self):
+    def command_ansible(self, slack_data):
         '''
         Send command to ansible to execute
         '''
         # TODO:
-        pass
+        if slack_data[0]["text"].split()[2] == "run":
+            if self.verbose: self.debug_log.debug("Running test Ansible job")
+            print("Right before subprocess is called")
+            runpath = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]
+            stdoutdata = subprocess.getoutput("ansible-playbook -i "+runpath+"/tests/ansible_tests/hosts "+runpath+"/tests/ansible_tests/test_playbook.yml")
+            print("stdoutdata: ", stdoutdata)
+            print("Right after subprocess is called")
 
     def listen(self):
             '''
             Connect bot to slack api and listen to data stream it has access to
             '''
+            threads = []
             self.bot_id = self.determine_bot_id()
             if self.sc.rtm_connect():
                 if self.verbose: self.debug_log.debug("================= Begin Listening =================")
@@ -262,9 +268,16 @@ class Slacksible():
                         if self.verbose: self.debug_log.debug(slack_data)
                         self.invoke_response = ["<@"+self.bot_id+">", self.bot_name, "slacksible"]
                         if "text" in slack_data[0] and slack_data[0]["text"].startswith(tuple(self.invoke_response)) and len(slack_data[0]["text"].split()) > 1:
-                            self.process_response(slack_data) # TODO: multi-thread/async this blocking action.")
+                            #self.process_response(slack_data) # TODO: multi-thread/async this blocking action.")
+                            thread = threading.Thread(target=self.process_response(slack_data), args=())
+                            if self.verbose: self.debug_log.debug(thread)
+                            thread.start()
+                            if self.verbose: self.debug_log.debug(thread)
+                            threads.append(thread)
+                            if self.verbose: self.debug_log.debug(threads)
             else:
                 self.stderr_log.error("Connection failed to Slack")
+
 
     def respond(self, message, channel):
         self.sc.api_call("chat.postMessage",
@@ -275,27 +288,15 @@ class Slacksible():
                       )
 
 
+
 def main():
-    args = cli_parser()
-
-    # Creates the expected log directory if it doesn't exist no matter where the application is executed from.
-    log_dir = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]+"/log/"
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-
-    # Creates handles for log files. Also creates the files themselves if they do not exist.
-    #TODO: allow for location of log_dir to be overwritten by config file
-    debug_log = setup_logger("slacksible_debug", log_dir+"slacksible_debug.log", level=logging.DEBUG)
-    stderr_log = setup_logger("slacksible_stderr", log_dir+"slacksible_stderr.log", level=logging.ERROR)
-    usage_log = setup_logger("slacksible_metrics", log_dir+"slacksible_metrics.log", level=logging.INFO)
-
-    # TODO: restructure inputs so config file provides most inputs here
-    bot = Slacksible(args.token, args.verbose, debug_log, stderr_log, usage_log)
-
+    args = cli_parser(sys.argv[1:])
+    config = build_bot_config(args, sys.argv[0])
+    bot = Slacksible(**config)
     try:
         bot.listen()
     except KeyboardInterrupt:
-        debug_log.debug("Exiting via KeyboardInterrupt")
+        config["debug_log"].debug("Exiting via KeyboardInterrupt")
 
 
 if __name__ == '__main__':
