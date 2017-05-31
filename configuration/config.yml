@@ -1,0 +1,8 @@
+---
+#environment setup
+log_dir_enable: false #override default log_dir creation
+log_dir: "/test/directory/" #if above == true then use this path instead of default
+ara_db: "/Users/jhefner/.ara/ansible.sqlite" #location of ara db during bootstrap.
+verbose: false #start bot in verbose mode? CLI input will override this.
+SLACKSIBLE_TOKEN: "xoxb-168959872961-Ztk8YuwqMqAPudOCcImuXbRC" #CLI input will override this.
+bot_name: "ansible_slack_bot"
