@@ -23,13 +23,7 @@ BIG TODOS:
 * restructure tool how chris setup Py300-Spring2017/Examples/mailroom
 '''
 
-
-
-
-# Defining here in global context so we capture its actual start time the closest as we can.
-start_time = time.time()
-
-def cli_parser():
+def cli_parser(args):
     '''
     Parses all arguments passed on command line.
     Creates an argparse class instance from passed arguments.
@@ -38,7 +32,54 @@ def cli_parser():
     parser.add_argument('--verbose', '-v', action='count', default=0,
     help='-v: print debug info to console.')
     parser.add_argument('--token', '-t', type=str, help="Slack Bot Token generated from Slack platform.")
-    return parser.parse_args()
+    return parser.parse_args(args)
+
+def get_runpath(filepath):
+    runpath = os.path.split(os.path.abspath(os.path.dirname(filepath)))[0]
+    return runpath
+
+def build_bot_config(args, filename):
+    '''
+    Parses config file. Overwrites config file parameters from
+    CLI arguments passed.
+    '''
+    runpath = get_runpath(filename)
+    config_dir = runpath+"/configuration/"
+    with open(config_dir+"config.yml", 'r') as file:
+        config = yaml.load(file)
+
+    # Creates the expected log directory if it doesn't exist no matter where the application is executed from.
+    if config["log_dir_enable"] and config["log_dir"]:
+        log_dir = config["log_dir"]
+    else:
+        log_dir = runpath+"/log/"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    # Creates handles for log files. Also creates the files themselves if they do not exist.
+    config["debug_log"] = setup_logger("slacksible_debug", log_dir+"slacksible_debug.log", level=logging.DEBUG)
+    config["stderr_log"] = setup_logger("slacksible_stderr", log_dir+"slacksible_stderr.log", level=logging.ERROR)
+    config["usage_log"] = setup_logger("slacksible_metrics", log_dir+"slacksible_metrics.log", level=logging.INFO)
+
+    if args.verbose:
+        config["verbose"] = args.verbose
+    if config["verbose"]:
+        config["debug_log"].debug("==================================================\n\n\n")
+
+    if args.token:
+        config["SLACKSIBLE_TOKEN"] = args.token
+        if config["verbose"]: config["debug_log"].debug("Token provided via CLI.")
+    elif os.environ.get('SLACKSIBLE_TOKEN'):
+        config["SLACKSIBLE_TOKEN"] = os.environ.get('SLACKSIBLE_TOKEN')
+        if config["verbose"]: config["debug_log"].debug("Token retrieved from environment variable")
+    elif config["SLACKSIBLE_TOKEN"]:
+        if config["verbose"]: config["debug_log"].debug("Token retrieved from config file")
+    else:
+        if config["verbose"]: config["debug_log"].debug("Token not provided")
+        raise NameError("Token not provided")
+
+    if config["verbose"]: config["debug_log"].debug(config)
+    return config
 
 
 def setup_logger(log_name, log_file, level=logging.INFO):
@@ -61,27 +102,19 @@ class Slacksible():
     '''
     Ansible slack bot class
     '''
-    def __init__(self, token, verbose, debug_log, stderr_log, usage_log, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         # TODO: update code to pull in items noted below from config file
+        print("args:" , args)
         print("kwargs: ", kwargs)
-        print("verbose: ", verbose)
-        self.verbose = verbose
-        self.debug_log = debug_log
-        self.stderr_log = stderr_log
-        self.usage_log = usage_log
-        self.sqlite_db = "/Users/jhefner/.ara/ansible.sqlite" #TODO: add directory to config file, make that configurable from bootstrapper
-
-        if token: #TODO: add token to config file
-            self.token = token
-            debug_log.debug("Token provided via CLI.")
-        elif os.environ.get('SLACKSIBLE_TOKEN'):
-            self.token = os.environ.get('SLACKSIBLE_TOKEN')
-            debug_log.debug("Token retrieved from environment variable")
-        else:
-            debug_log.debug("Token not provided")
-            raise NameError("Token not provided")
-        self.bot_name = "ansible_slack_bot" #TODO: add bot_name to config file
+        self.verbose = kwargs.get("verbose")
+        self.debug_log = kwargs.get("debug_log")
+        self.stderr_log = kwargs.get("stderr_log")
+        self.usage_log = kwargs.get("usage_log")
+        self.sqlite_db = kwargs.get("ara_db")
+        self.token = kwargs.get("SLACKSIBLE_TOKEN")
+        self.bot_name = kwargs.get("bot_name")
         self.sc = SlackClient(self.token)
+
 
     def api_test(self): # simple api test for bot, remove once app proven.
         '''
@@ -92,6 +125,7 @@ class Slacksible():
                         text="Hello from Python! :tada:"
                         )
 
+
     def determine_bot_id(self):
         '''
         Determine slack bot's own user id
@@ -101,6 +135,7 @@ class Slacksible():
             if user["name"] == self.bot_name:
                 if self.verbose: self.debug_log.debug("Bot Slack ID: "+user["id"])
                 return user["id"]
+
 
     def process_response(self, slack_data):
         '''
