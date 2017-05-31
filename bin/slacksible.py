@@ -11,28 +11,14 @@ import threading
 import yaml
 import subprocess
 
-# TODO: move token out to env var or file and loaded during app boot
-# Example- export SLACKSIBLE_TOKEN=xoxb-168959872961-kLJ5BASBuyeItLgKzDVx5UTX
-
-# Logging levels:
-# CRITICAL    50
-# ERROR       40
-# WARNING     30
-# INFO        20
-# DEBUG       10
-
+start_time = time.time()
 
 '''
 BIG TODOS:
-
-* create sqlite3 connection to current ara db ~/.ara/ansible.sqlite
-* use it to do a `select * from playbooks` and get the data we want to show
-* figure out ara bootstrap as it needs python 2.7.13
+* figure out ara bootstrap as it needs python 2.7.13 (ansible?)
 * figure out docker build so that i have 2 different versions of python running w/virtualenv?
-* complete functions that call from db to show data and return it to slack
 * go back and re-do bootstrapping work for all of applciation
-* write config file and setup encryption for it
-* get config file imported and in place of code that shows that data
+* configure encryption/decryption for config file(maybe)
 * setup project with setuptools
 * restructure tool how chris setup Py300-Spring2017/Examples/mailroom
 '''
