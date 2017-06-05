@@ -1,8 +1,13 @@
 ---
 #environment setup
-log_dir_enable: false
-log_dir: "/path/to/log/dir/"
+
+log_dir_enable: false #enable specification of a different logging dir
+log_dir: "/path/to/log/dir/" #if above is true use this dir for log directory
+
 ara_db: "/path/to/ara/db/" #location of ara db during bootstrap.
+
 verbose: false #start bot in verbose mode? CLI input will override this.
+
 SLACKSIBLE_TOKEN: "slack-api-token-goes-here" #CLI input will override this.
+
 bot_name: "your-slack-bot-name-here"
