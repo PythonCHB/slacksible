@@ -151,7 +151,7 @@ class Slacksible():
     ```
 Commands:
     ara - show latest ansible runs
-    ansilbe - send action to ansible (in progress)
+    ansible - send action to ansible (in progress)
     uptime - show bot uptime
     debug [on/off] - toggle debug logging on/off
     ping - bot respond with simple pong
