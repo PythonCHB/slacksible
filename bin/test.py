@@ -3,7 +3,12 @@ from slacksible import (cli_parser,
                         build_bot_config,
                         setup_logger,
                         Slacksible)
-import os, sys, inspect, types, logging
+# import os
+# import types
+# import logging
+import sys
+import inspect
+
 
 def test_cli_parser():
     parser = cli_parser(['-v'])
@@ -23,5 +28,5 @@ def test_setup_logger():
 def test_slacksible_class():
     config = build_bot_config(cli_parser(['-v']), sys.argv[1])
     bot = Slacksible(**config)
-    print(bot)
+    print("bot: ", bot)
     assert inspect.isclass(type(bot)) == True
