@@ -116,16 +116,6 @@ class Slacksible():
         self.sc = SlackClient(self.token)
 
 
-    def api_test(self): # simple api test for bot, remove once app proven.
-        '''
-        Simple bot API test
-        '''
-        self.sc.api_call("chat.postMessage",
-                        channel="#slack_bot",
-                        text="Hello from Python! :tada:"
-                        )
-
-
     def determine_bot_id(self):
         '''
         Determine slack bot's own user id
@@ -151,20 +141,21 @@ class Slacksible():
         # TODO: capture what was requested as a command into metrics log
 
         if slack_data[0]["user"] == self.bot_id:
-            if self.verbose: self.debug_log.debug("Ignoring flexo's own response.")
+            pass
         else:
             if len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "ping":
                 self.respond("Pong! :pingpong:", slack_data[0]["channel"])
 
             elif len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "help":
-                # parser = argparse.ArgumentParser(description="slacksible: Remote Ansible execution with run reports by Ara.")
-                # parser.add_argument('-d', 'debug', type=str, help='toggle debug logging.', required=False)
-                # parser.add_argument('-s', 'seppuku', action='store_true', help="Restart slacksible.", required=False)
-                # parser.add_argument('-u', 'uptime', action='store_true', help="Display slacksible bot uptime.", required=False)
-                # parser.add_argument('-a', 'ara', action='store_true', help="Request info from ARA.", required=False)
-                # parser.parse_args(['--option', 'value', '--more-options', 'more-values'])
-                # self.respond("",slack_data[0]["channel"])
-                #TODO: make bot list available commands
+                self.respond('''
+    ```
+Commands:
+    ara - show latest ansible runs
+    ansilbe - send action to ansible (in progress)
+    uptime - show bot uptime
+    debug [on/off] - toggle debug logging on/off
+    ping - bot respond with simple pong
+    help - show this text``` ''', slack_data[0]["channel"])
                 pass
             elif len(slack_data[0]["text"].split()) == 2 and slack_data[0]["text"].split()[1] == "seppuku":
                 if self.verbose: self.debug_log.debug("Invoking seppuku function")
@@ -200,15 +191,13 @@ class Slacksible():
         Toggles debug logging on via Slack command
         '''
         if slack_data[0]["text"].split()[2] == "off":
-            if self.verbose: self.debug_log.debug("Debug command already off, requesting to be turned off again.")
             self.verbose = 0
-            if self.verbose: self.respond("Debug mode off")
-            else: self.respond("Debug already off")
+            self.respond("Debug mode off")
+            if self.verbose: self.debug_log.debug("Debug mode off")
         elif slack_data[0]["text"].split()[2] == "on":
-            self.verbose = 1 #TODO: restructure this to understand the original verbose setting when bot was initiated.
-            if self.verbose: self.debug_log.debug("Debug command currently off, requesting to be turned on.")
-        else:
-            self.respond("I do not understand that command.", slack_data[0]["channel"])
+            self.verbose = 1
+            self.respond("Debug mode on")
+            if self.verbose: self.debug_log.debug("Debug mode on")
 
 
     def query_ARA(self, slack_data):
@@ -246,13 +235,14 @@ class Slacksible():
         Send command to ansible to execute
         '''
         # TODO:
-        if slack_data[0]["text"].split()[2] == "run":
-            if self.verbose: self.debug_log.debug("Running test Ansible job")
-            print("Right before subprocess is called")
-            runpath = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]
-            stdoutdata = subprocess.getoutput("ansible-playbook -i "+runpath+"/tests/ansible_tests/hosts "+runpath+"/tests/ansible_tests/test_playbook.yml")
-            print("stdoutdata: ", stdoutdata)
-            print("Right after subprocess is called")
+        # if slack_data[0]["text"].split()[2] == "run":
+        #     if self.verbose: self.debug_log.debug("Running test Ansible job")
+        #     print("Right before subprocess is called")
+        #     runpath = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]
+        #     stdoutdata = subprocess.getoutput("ansible-playbook -i "+runpath+"/tests/ansible_tests/hosts "+runpath+"/tests/ansible_tests/test_playbook.yml")
+        #     print("stdoutdata: ", stdoutdata)
+        #     print("Right after subprocess is called")
+        pass
 
     def listen(self):
             '''
