@@ -204,7 +204,6 @@ Commands:
         '''
         Query ARA database for information to report
         '''
-
         if slack_data[0]["text"].split()[2] == "status":
             conn = sqlite3.connect(self.sqlite_db)
             c = conn.cursor()
@@ -234,15 +233,21 @@ Commands:
         '''
         Send command to ansible to execute
         '''
-        # TODO:
-        # if slack_data[0]["text"].split()[2] == "run":
-        #     if self.verbose: self.debug_log.debug("Running test Ansible job")
-        #     print("Right before subprocess is called")
-        #     runpath = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]
-        #     stdoutdata = subprocess.getoutput("ansible-playbook -i "+runpath+"/tests/ansible_tests/hosts "+runpath+"/tests/ansible_tests/test_playbook.yml")
-        #     print("stdoutdata: ", stdoutdata)
-        #     print("Right after subprocess is called")
-        pass
+        if slack_data[0]["text"].split()[2] == "run":
+            if self.verbose: self.debug_log.debug("Running test Ansible job")
+            print("Right before subprocess is called")
+            if self.verbose: self.debug_log.debug("Right before subprocess is called")
+            runpath = os.path.split(os.path.abspath(os.path.dirname(sys.argv[0])))[0]
+            print(runpath)
+            if self.verbose: self.debug_log.debug("runpath: "+runpath)
+            command_to_run = ". /Users/jhefner/python_dev/uw_python/project/slacksible/tests/ansible_tests/bin/activate && cd /Users/jhefner/python_dev/uw_python/project/slacksible/tests/ansible_tests && ansible-playbook -i "+runpath+"/tests/ansible_tests/hosts "+runpath+"/tests/ansible_tests/test_playbook.yml"
+            print(command_to_run)
+            if self.verbose: self.debug_log.debug("command_to_run: "+command_to_run)
+            stdoutdata = subprocess.getoutput(command_to_run)
+            print("stdoutdata: "+stdoutdata)
+            if self.verbose: self.debug_log.debug("stdoutdata: "+stdoutdata)
+            print("Right after subprocess is called")
+
 
     def listen(self):
             '''
@@ -258,7 +263,6 @@ Commands:
                         if self.verbose: self.debug_log.debug(slack_data)
                         self.invoke_response = ["<@"+self.bot_id+">", self.bot_name, "slacksible"]
                         if "text" in slack_data[0] and slack_data[0]["text"].startswith(tuple(self.invoke_response)) and len(slack_data[0]["text"].split()) > 1:
-                            #self.process_response(slack_data) # TODO: multi-thread/async this blocking action.")
                             thread = threading.Thread(target=self.process_response(slack_data), args=())
                             if self.verbose: self.debug_log.debug(thread)
                             thread.start()
