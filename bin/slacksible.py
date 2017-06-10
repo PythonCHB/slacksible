@@ -17,10 +17,14 @@ start_time = time.time()
 BIG TODOS:
 * figure out ara bootstrap as it needs python 2.7.13 (ansible?)
 * figure out docker build so that i have 2 different versions of python running w/virtualenv?
+##CHB: this is quite doable -- though not really anything to so with docker
+##     you can create multiple environemnts, each with their own version of python
+##     once that's set up, I imagine you can make a docker image of the whole thing.
 * go back and re-do bootstrapping work for all of applciation
 * configure encryption/decryption for config file(maybe)
 * setup project with setuptools
 * restructure tool how chris setup Py300-Spring2017/Examples/mailroom
+##CHB --   good idea :-)
 '''
 
 def cli_parser(args):
@@ -52,6 +56,7 @@ def build_bot_config(args, filename):
     if config["log_dir_enable"] and config["log_dir"]:
         log_dir = config["log_dir"]
     else:
+    ## this will create a logdir if "log_dir_enable" is False -- is that the intent???
         log_dir = runpath+"/log/"
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
@@ -96,7 +101,14 @@ def setup_logger(log_name, log_file, level=logging.INFO):
     logger.setLevel(level)
     logger.addHandler(handler)
     return logger
-
+##CHB: Nice logging system. However, I _think_ it could be a bit simpler to use.
+##     A single logger can have multiple Handlers:
+##     https://docs.python.org/3/howto/logging.html#handlers
+##     So you could have one logger, and it could send stuff to different files, depending on the severity
+##       That way you could call:
+##       logger.debug(a_message) # and that would go to one file
+##       logger.info(another_message) # that would go to somewhere else.
+##       perhaps easier than having to get the right logger....
 
 class Slacksible():
     '''
@@ -114,7 +126,22 @@ class Slacksible():
         self.token = kwargs.get("SLACKSIBLE_TOKEN")
         self.bot_name = kwargs.get("bot_name")
         self.sc = SlackClient(self.token)
+##CHB: as mentioned in class, this might be better with "proper" keyword arguments:
 
+# def __init__(self,
+#              verbose=False,
+#              debug_log=None,
+#              stderr_log=None,
+#              ....
+#             )
+# That way you get defaults, too, and a more clear API.
+#
+## alternatively you could be really slick and do:
+
+# def __init__(self, config_dict):
+#     self.__dict__.update(config_dict)
+
+##which would pull in all the keys and values in teh passed-in config
 
     def determine_bot_id(self):
         '''
@@ -132,6 +159,7 @@ class Slacksible():
         Process user input and route to correct function to deal with request
         '''
         # TODO: create command list and route these requests to different functions
+        ## yup -- that's a good idea :-)
         text = slack_data[0]["text"]
         request = slack_data[0]["text"].split()
         length_request = len(slack_data[0]["text"].split())
@@ -161,6 +189,14 @@ Commands:
                 if self.verbose: self.debug_log.debug("Invoking seppuku function")
                 self.seppuku(slack_data)
 
+#    ##CHB: as you are doing the same thing multiple times:
+#    l, val = len(text.split()),  text.split()[1]
+#    elif l == 2  and val == "uptime":
+#        ...
+#    elif l == 3 and val == "debug":
+#     ...    
+
+# and why are you checking the length???
             elif len(text.split()) == 2 and text.split()[1] == "uptime":
                 self.respond("--- %s Minutes ---" % ((time.time() - start_time) / 60), slack_data[0]["channel"])
 
@@ -178,6 +214,7 @@ Commands:
 
 
     def seppuku(self, slack_data):
+        ##CHB: very slick!
         '''
         Restarts running bot application (.py) file
         '''
@@ -190,6 +227,11 @@ Commands:
         '''
         Toggles debug logging on via Slack command
         '''
+##CHB:  I'm seeing alot of code like this --maybe better to deconstruct the slack_data into an object first?
+##      then this would look more like:
+##      if slack_data.val == "off"
+##        or somethign like that
+
         if slack_data[0]["text"].split()[2] == "off":
             self.verbose = 0
             self.respond("Debug mode off")
@@ -271,7 +313,10 @@ Commands:
                             if self.verbose: self.debug_log.debug(threads)
             else:
                 self.stderr_log.error("Connection failed to Slack")
-
+##CHB: This is going to take a bit more thought, but I think you'd be better off putting the jobson a queue, and then having them run
+#      https://www.troyfawkes.com/learn-python-multithreading-queues-basics/
+#      that way you can better ake sure that they are all done....
+#      also, thread.join() may be useful here, too
 
     def respond(self, message, channel):
         self.sc.api_call("chat.postMessage",
